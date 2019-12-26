@@ -1,0 +1,67 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec 26 14:08:04 2019
+
+@author: vgupta114
+"""
+
+import nltk
+
+import pandas as pd
+
+import re
+
+from nltk.corpus import stopwords
+
+from nltk.stem import WordNetLemmatizer
+
+df=pd.read_csv('C:/Users/vgupta114/Downloads/classifier/Classifier' , sep='\t' , names=['label','feature'])
+
+df.isnull().sum()
+
+y=pd.get_dummies(df['label'])
+y=y.iloc[:,0].values
+
+
+X=df['feature']
+
+lmt=WordNetLemmatizer()
+##c=[]
+for i in range(len(X)):
+    X[i]=re.sub('[^a-zA-Z]', ' ', X[i]).lower()
+    words=nltk.word_tokenize(X[i])
+    words=[lmt.lemmatize(i) for i in words if i not in set(stopwords.words('english'))]
+    X[i]=' '.join(words)
+    
+from sklearn.feature_extraction.text import CountVectorizer
+cv=CountVectorizer(max_features=5000)
+X_final=cv.fit_transform(X).toarray()
+
+from sklearn.model_selection import train_test_split
+X_train,X_test,y_train,y_test=train_test_split(X_final,y,test_size=0.25 , random_state=0)
+   
+
+from sklearn.naive_bayes import MultinomialNB
+nb=MultinomialNB()
+nb.fit(X_train,y_train)
+
+
+y_pred=nb.predict(X_test)
+    
+from sklearn.metrics import confusion_matrix
+cv=confusion_matrix(y_test, y_pred)
+
+167	18
+151	1057
+
+from sklearn.metrics import accuracy_score
+ac=accuracy_score(y_test,y_pred)
+0.8786791098348887
+
+
+
+
+173	12
+10	1198
+
+
